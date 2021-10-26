@@ -1,3 +1,6 @@
+### 2021-10-26 12:08:16.243532: clock-out
+
+* set up git repo
 * prototyping
 
 ### 2021-10-26 11:42:24.426368: clock-in

@@ -5,9 +5,34 @@ SunpyKamodo provides a functional interface to Sunpy's underlying data structure
 thereby making Sunpy amenable to functional programing and allowing interoperability with a growing ecosystem of functionalized space weather resources.
 
 
-## Toward a Sunpy-Kamodo interface
+## Getting Started
 
 Briefly, Kamodo provides a generic, symbolic interface to functionalized data resources.  When registered in a Kamodo object (a fancy dictionary), such functions may be manipulated with python or latex expressions: Kamodo automatically performs function composition and explicitly inserts unit conversions where appropriate. Kamodo uses function inspection to produce quick-look graphics for a broad range of function signatures. 
+
+<!-- #region -->
+
+
+#### Docker
+
+If you have docker installed:
+
+```sh
+docker run -p 8889:8888 -it apembroke/kamodo-sunpy 
+```
+
+#### Conda
+
+This is basically the same as the docker version
+```sh
+conda config --add channels conda-forge
+conda config --set channel_priority strict
+conda install sunpy
+
+pip install kamodo
+
+conda install jupytext jupyter
+```
+<!-- #endregion -->
 
 ```python
 from kamodo import Kamodo
@@ -16,10 +41,23 @@ import numpy as np
 
 ```python
 k = Kamodo(f='x**2-x-1')
+k
+```
+
+```python
+k.f(np.linspace(-5,5,30))
 ```
 
 ```python
 k.plot(f={'x':np.linspace(-5,5,30)})
+```
+
+```python
+from kamodo.plotting import plot_types
+```
+
+```python
+plot_types
 ```
 
 ### Sunpy Kamodofication (Based on Intro_to_sunpy notebooks)
@@ -33,15 +71,19 @@ In order to support Sunpy, we have updated Kamodo's automated plotting routines 
 Todo:  alpha channels? video?
 
 ```python
-def img(i=np.arange(33),j=np.arange(35)):
+def img(i=np.arange(100),j=np.arange(101)):
     ii, jj, kk = np.meshgrid(i,j,[100, 200, 255], indexing='ij')
-    return 255*(np.sin(400*ii)**2+np.cos(400*jj)**2)
+    return 255*(np.sin(.1*ii)+np.cos(.1*jj))
 
 kamodo = Kamodo(img=img)
 kamodo.plot('img')
 ```
 
-# Kamodofying SkyCoord tranforms
+```python
+kamodo.img(3,3)
+```
+
+#### Kamodofying SkyCoord tranforms
 
 ```python
 import astropy.units as u
@@ -62,11 +104,11 @@ Define a function that can interact with SkyCoord objects
 ```python
 @kamodofy(equation = "\lambda(\delta_{hpc},\\alpha_{hpc}, t_{unix})",
           units='km',
-          arg_units=dict(alpha_HPC='degrees', delta_HPC='degrees', t_unix='s'))
+          arg_units=dict(alpha_HPC='arcsec', delta_HPC='arcsec', t_unix='s'))
 def xvec_HGS(alpha_HPC, delta_HPC, t_unix):
     """Converts from helioprojective to heliographic_stonyhurst"""
     hpc = SkyCoord(alpha_HPC, delta_HPC,
-                   unit='deg',
+                   unit='arcsec',
                    obstime=t_unix,
                    observer="earth",
                    frame="helioprojective")
@@ -86,6 +128,10 @@ kamodo
 ```
 
 ```python
+help(kamodo.xvec_HGS)
+```
+
+```python
 lon = np.linspace(0, 5, 5)
 lat = np.linspace(0, 5, 7)
 
@@ -97,7 +143,7 @@ llon.shape, llat.shape
 test that lon-lat -> x,y,z works as expected
 
 ```python
-kamodo.xvec_HGS(llon, llat, '2020/12/15T00:00:00').shape
+kamodo.xvec_HGS(llon, llat, '2020/12/15T00:00:00')
 ```
 
 ### Changing observers
@@ -112,7 +158,7 @@ hpc_venus = SkyCoord(0*u.arcsec, 0*u.arcsec, observer="venus", obstime="2017-07-
 @kamodofy(units='AU', arg_units=dict(lon_venus='arcsec', lat_venus='arcsec', t_obs='s'))
 def xvec_earth(lon_venus, lat_venus, t_obs):
     """transforms from Venus sky coordinates to Earth cartesian"""
-    hpc_earth = sunpy.coordinates.Helioprojective(observer="earth", obstime=t_obs)
+    hpc_earth = sunpy.coordinates.Helioprojective(observer="earth", obstime=t_obs) # z is toward the sun
     hpc_venus = SkyCoord(lon_venus, lat_venus,
                          observer="venus",
                          unit='arcsec',
@@ -137,12 +183,12 @@ kamodo.xvec_earth(3,3, '2020/12/3')
 ```python
 import matplotlib.pyplot as plt
 
-from sunpy.data.sample import AIA_171_ROLL_IMAGE
+from sunpy.data.sample import AIA_171_IMAGE
 import sunpy.map
 ```
 
 ```python
-aiamap = sunpy.map.Map(AIA_171_ROLL_IMAGE)
+aiamap = sunpy.map.Map(AIA_171_IMAGE)
 aiamap
 ```
 
@@ -159,11 +205,11 @@ def alpha_AIA(ivec):
 kamodo['alpha_AIA'] = alpha_AIA
 
 @kamodofy(units='arcsec')
-def delta_AIA(ivec):
+def pixel_to_latitude(ivec):
     """pixel to latitude"""
     i, j = ivec
     return aiamap.wcs.pixel_to_world(i,j).spherical.lat.value
-kamodo['delta_AIA'] = delta_AIA
+kamodo['delta_AIA'] = pixel_to_latitude
 
 def xvec(ivec):
     """converts from pixels to Cartesian world coordinates.
@@ -177,8 +223,15 @@ def xvec(ivec):
 
 kamodo['xvec_AIA'] = xvec
 
-
 kamodo
+```
+
+```python
+help(kamodo.delta_AIA)
+```
+
+```python
+
 ```
 
 ```python
@@ -240,14 +293,15 @@ bbox[1,1]-bbox[1,0]
 
 ds = bbox[0,1]-bbox[0,0]
 
-np.linspace(bbox[0,0] + ds/2, bbox[0,0] + ds/2 + ds/100, )
+np.linspace(bbox[0,0] + ds/2, bbox[0,0] + ds/2 + ds/10, )
 
-np.arange(bbox[0,0] + ds/2, step=ds/100)
+np.arange(bbox[0,0] + ds/2, step=ds/10)
+```
 
-alpha = np.linspace(*np.linspace(bbox[0,0], bbox[0,1],  5)[2:4], num=51)
+```python
+alpha = np.linspace(-250, 250, 200)
 
-
-delta = np.linspace(*np.linspace(bbox[1,0], bbox[1,1], 5)[2:4], num=64)
+delta = np.linspace(0, 500, 200)
 ```
 
 ```python
@@ -255,16 +309,26 @@ kamodo
 ```
 
 ```python
-kamodo.ivec_AIA(alpha=alpha, delta=delta).shape
+kamodo.i_px(alpha, delta).shape
 ```
 
 ```python
+help(kamodo.i_px)
+```
+
+```python
+alpha = np.linspace(-400, 400, 800)
+
+delta = np.linspace(-400, 400, 800)
+
 fig = kamodo.plot(i_px = dict(alpha=alpha,
                         delta=delta))
+
+fig
 ```
 
 ```python
-fig
+aiamap
 ```
 
 We have also done some experiments kamodofying the SkyCoord class:

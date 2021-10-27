@@ -1,4 +1,6 @@
 * added workflows
+* added workflows
+* need high level why we are doing it
 
 ### 2021-10-27 09:27:15.186677: clock-in
 

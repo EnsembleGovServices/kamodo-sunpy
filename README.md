@@ -1,16 +1,43 @@
-# Sunpy-Kamodo
+## Sunpy-Kamodo
+
+Building a high-level functional layer for interoperability with PyHC, data-model comparisons, and executable manuscripts.
 
 
-SunpyKamodo provides a functional interface to Sunpy's underlying data structures and transformations,
-thereby making Sunpy amenable to functional programing and allowing interoperability with a growing ecosystem of functionalized space weather resources.
+### Why are you doing this?
+
+By "Kamodofying" sunpy, we can extend Sunpy's capabilities:
+1. Enable data-model comparisons
+1. $f$unctional access Sunpy's underlying data structures and transformations
+1. Make amenable to functional programming techniques.
+1. Data mining/machine learning applications
+1. High-level workflows for lay audiences.
+1. Enable interoperability with alternative plotting libraries (e.g. plotly)
+1. Automated plots, dashboards
+1. Composability with other PyHC projects
+1. More generally: Interoperability with a growing ecosystem of functionalized space weather resources
 
 
-## Getting Started
+## Kamodo, in brief
 
-Briefly, Kamodo provides a generic, symbolic interface to functionalized data resources.  When registered in a Kamodo object (a fancy dictionary), such functions may be manipulated with python or latex expressions: Kamodo automatically performs function composition and explicitly inserts unit conversions where appropriate. Kamodo uses function inspection to produce quick-look graphics for a broad range of function signatures. 
+Kamodo provides a generic, symbolic interface to functionalized data resources.
+* @kamodofy decorator
+* Dictionary-like function registration
+* Functions may be manipulated with python or latex expressions
+* Function composition
+* Explicitly unit conversion
+* Kamodo uses function inspection to produce quick-look graphics
+
+```python
+from kamodo.plotting import plot_types
+plot_types
+```
 
 <!-- #region -->
+## Getting Started
 
+Sunpy-Kamodo hosted on Github
+
+https://github.com/EnsembleGovServices/kamodo-sunpy
 
 #### Docker
 
@@ -34,56 +61,37 @@ conda install jupytext jupyter
 ```
 <!-- #endregion -->
 
-```python
-from kamodo import Kamodo
-import numpy as np
-```
-
-```python
-k = Kamodo(f='x**2-x-1')
-k
-```
-
-```python
-k.f(np.linspace(-5,5,30))
-```
-
-```python
-k.plot(f={'x':np.linspace(-5,5,30)})
-```
-
-```python
-from kamodo.plotting import plot_types
-```
-
-```python
-plot_types
-```
-
 ### Sunpy Kamodofication (Based on Intro_to_sunpy notebooks)
 
 We say that a data resource has been "kamodofied" when all scientifically relevant fields have been registered as functions with appropriate units, citation information, etc. Typically, this done through a subclass of Kamodo tailored for that use case. For example, when raw data is involved, the kamodo subclass should be responsible for 1)  interacting with any interfaces (e.g. PyHC  projects) required to access the data, and 2) register data interpolators as functions intended for scientific analysis. 
 
-### Recent changes to Kamodo-core to support sunpy
-In order to support Sunpy, we have updated Kamodo's automated plotting routines to support image-like functions.  Such functions need to have the following properties:
-* the function should take 2 integer arrays as input (shape ni, nj)
-* the function should return an integer array of shape ni, nj, 3 (also integer)
-Todo:  alpha channels? video?
+
+### Kamodo-core now supports images
+
 
 ```python
+import numpy as np
+from kamodo import Kamodo, kamodofy
+@kamodofy
 def img(i=np.arange(100),j=np.arange(101)):
     ii, jj, kk = np.meshgrid(i,j,[100, 200, 255], indexing='ij')
     return 255*(np.sin(.1*ii)+np.cos(.1*jj))
 
 kamodo = Kamodo(img=img)
-kamodo.plot('img')
+fig = kamodo.plot('img')
 ```
+
+```python
+fig.write_image('kamodo_test_image.png')
+```
+
+![kamodo test image](kamodo_test_image.png)
 
 ```python
 kamodo.img(3,3)
 ```
 
-#### Kamodofying SkyCoord tranforms
+## Kamodofying SkyCoord tranforms
 
 ```python
 import astropy.units as u
@@ -318,7 +326,6 @@ help(kamodo.i_px)
 
 ```python
 alpha = np.linspace(-400, 400, 800)
-
 delta = np.linspace(-400, 400, 800)
 
 fig = kamodo.plot(i_px = dict(alpha=alpha,

@@ -1,3 +1,7 @@
+### 2022-04-20 14:39:36.223991: clock-out
+
+* cannot run jupyter notebook container from m1 machine
+* need to update docker to 4.4.2 https://github.com/jupyter/docker-stacks/issues/1549
 * rebuilding from kamodo-core repo
 
 ### 2022-04-20 13:29:39.818613: clock-in

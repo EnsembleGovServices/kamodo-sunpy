@@ -41,7 +41,15 @@ https://github.com/EnsembleGovServices/kamodo-sunpy
 
 #### Docker
 
-If you have docker installed:
+If you have docker installed, go to the base of this repo:
+
+```sh
+docker compose up sunpy-kamodo
+```
+
+This will build and run a container with kamodo-sunpy.
+
+Alternatively, you can grab and run an older (stable) version of kamodo-sunpy like this:
 
 ```sh
 docker run -p 8889:8888 -it apembroke/kamodo-sunpy 
@@ -73,12 +81,18 @@ We say that a data resource has been "kamodofied" when all scientifically releva
 import numpy as np
 from kamodo import Kamodo, kamodofy
 @kamodofy
-def img(i=np.arange(100),j=np.arange(101)):
-    ii, jj, kk = np.meshgrid(i,j,[100, 200, 255], indexing='ij')
-    return 255*(np.sin(.1*ii)+np.cos(.1*jj))
+def img(i=np.arange(100), j=np.arange(101)):
+    ii, jj, kk = np.meshgrid(i, j, [50, 100, 200], indexing='ij')
+    shape = ii.shape[0], ii.shape[1], 2
+    scale = 100
+    freq = 5
+    r = scale*(np.sin(freq*np.pi*ii/max(i))**2)
+    g = scale*(np.cos(freq*np.pi*jj/max(j))**2)
+    b = scale*(np.sin(freq*np.pi*jj/max(j))**2)
+    return (r + g + b).astype(int)
 
 kamodo = Kamodo(img=img)
-fig = kamodo.plot('img')
+kamodo.plot('img')
 ```
 
 ```python

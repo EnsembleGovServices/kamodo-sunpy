@@ -1,3 +1,4 @@
+* rebuilding from kamodo-core repo
 
 ### 2022-04-20 13:29:39.818613: clock-in
 

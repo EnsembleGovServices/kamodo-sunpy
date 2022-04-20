@@ -1,3 +1,6 @@
+
+### 2022-04-20 15:59:15.181607: clock-in
+
 ### 2022-04-20 14:39:36.223991: clock-out
 
 * cannot run jupyter notebook container from m1 machine

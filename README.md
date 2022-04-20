@@ -92,11 +92,25 @@ def img(i=np.arange(100), j=np.arange(101)):
     return (r + g + b).astype(int)
 
 kamodo = Kamodo(img=img)
-kamodo.plot('img')
+fig = kamodo.plot('img')
+fig
 ```
 
 ```python
-fig.write_image('kamodo_test_image.png')
+import plotly.io as pio
+pio.kaleido.scope.chromium_args = tuple([arg for arg in pio.kaleido.scope.chromium_args if arg != "--disable-dev-shm-usage"])
+```
+
+```python
+!pip freeze
+```
+
+```python
+!orca --version
+```
+
+```python
+fig.write_image('kamodo_test_image.svg', engine='orca')
 ```
 
 ![kamodo test image](kamodo_test_image.png)

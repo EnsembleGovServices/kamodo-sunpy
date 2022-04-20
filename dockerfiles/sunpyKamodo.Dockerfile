@@ -13,3 +13,8 @@ RUN pip install -e kamodo-core
 
 RUN conda install jupytext jupyter
 
+
+RUN conda install -c plotly plotly-orca==1.2.1 psutil requests
+
+RUN apt-get update
+RUN apt-get -y install xvfb

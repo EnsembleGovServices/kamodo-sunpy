@@ -1,3 +1,4 @@
+* created SkyKamodo class
 
 ### 2022-04-21 09:56:10.180071: clock-in
 

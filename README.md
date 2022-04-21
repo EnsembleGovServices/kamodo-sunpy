@@ -78,18 +78,17 @@ We say that a data resource has been "kamodofied" when all scientifically releva
 
 
 ```python
+np.sin(3)
+```
+
+```python
 import numpy as np
 from kamodo import Kamodo, kamodofy
+
 @kamodofy
-def img(i=np.arange(100), j=np.arange(101)):
-    ii, jj, kk = np.meshgrid(i, j, [50, 100, 200], indexing='ij')
-    shape = ii.shape[0], ii.shape[1], 2
-    scale = 100
-    freq = 5
-    r = scale*(np.sin(freq*np.pi*ii/max(i))**2)
-    g = scale*(np.cos(freq*np.pi*jj/max(j))**2)
-    b = scale*(np.sin(freq*np.pi*jj/max(j))**2)
-    return (r + g + b).astype(int)
+def img(i=np.arange(100),j=np.arange(101)):
+    ii, jj, kk = np.meshgrid(i,j,[100, 200, 255], indexing='ij')
+    return 255*(np.sin(.1*ii)+np.cos(.1*jj))
 
 kamodo = Kamodo(img=img)
 fig = kamodo.plot('img')
@@ -97,49 +96,282 @@ fig
 ```
 
 ```python
-import plotly.io as pio
-pio.kaleido.scope.chromium_args = tuple([arg for arg in pio.kaleido.scope.chromium_args if arg != "--disable-dev-shm-usage"])
-```
-
-```python
-!pip freeze
-```
-
-```python
-!orca --version
-```
-
-```python
-fig.write_image('kamodo_test_image.svg', engine='orca')
-```
-
-![kamodo test image](kamodo_test_image.png)
-
-```python
 kamodo.img(3,3)
 ```
 
-## Kamodofying SkyCoord tranforms
+## Kamodofied SkyCoord tranforms
 
 ```python
-import astropy.units as u
-from astropy.coordinates import SkyCoord
-import sunpy.coordinates
-from kamodo import Kamodo, kamodofy
+
+
+_frame_abbrev = {'HeliographicStonyhurst': 'HGS',
+                 'Helioprojective': 'HPC',
+                 'HeliographicCarrington': 'HGC'}
+
+_earth_observers = ['HeliographicStonyhurst']
+
+_available_frames = list(_frame_abbrev.keys()) + list(_frame_abbrev.values())
+
+def check_frames(frame):
+    """See if this frame is supported"""
+    if isinstance(frame, str):
+        if frame not in _available_frames:
+            raise NotImplementedError(f'{frame} not in {_available_frames}')
+    else:
+        for frame_ in frame:
+            check_frames(frame_)
+
+
+class SkyKamodo(Kamodo):
+    """wrapper for Sky Coordinates"""
+    def __init__(self,
+                 to_frame, # can be list
+                 from_frame, # can be list
+                 from_units='arcsec',
+                 representation_type='cartesian',
+                 to_observer='earth',
+                 from_observer='earth',
+                 verbose=False,
+                 **kwargs):
+        """Register transformations between Sunpy Coordinate systems"""
+        
+        super(SkyKamodo, self).__init__(verbose=verbose, **kwargs)
+
+
+        self._from_units = from_units
+        self._to_frame = to_frame
+        self._from_frame = from_frame
+        self._from_observer = from_observer
+        self._to_observer = to_observer
+        self._representation_type = representation_type
+
+        self.register_frames()
+
+    def register_frames(self):
+        check_frames(self._to_frame)
+        check_frames(self._from_frame)
+
+        if isinstance(self._from_frame, str):
+            if isinstance(self._to_frame, str):
+                self.register_frame(self._from_frame, self._to_frame)
+            else:
+                for to_ in to_frame:
+                    self.register_frame(self._from_frame, to_)
+        else:
+            if isinstance(self._to_frame, str):
+                for from_ in self._from_frame: # assume iterable
+                    self.register_frame(from_, self._to_frame)
+            else:
+                for from_ in self._from_frame:
+                    for to_ in self._to_frame:
+                        self.register_frame(from_, to_) 
+
+    def register_frame(self, from_frame, to_frame):
+        if self.verbose:
+            print(f'registering {from_frame} -> {to_frame}')
+        from_abbrev = _frame_abbrev[from_frame]
+        alpha_var = "alpha_{}".format(from_abbrev)
+        delta_var = "delta_{}".format(from_abbrev)
+        arg_units= {alpha_var: self._from_units,
+                    delta_var: self._from_units,
+                    't_unix': 's'}
+        
+        signature = [forge.arg(alpha_var),
+                     forge.arg(delta_var),
+                     forge.arg('t_unix')]
+        
+        
+        To_frame = getattr(sunpy.coordinates.frames, to_frame)
+        From_frame = getattr(sunpy.coordinates.frames, from_frame)
+
+        if self._representation_type == 'cartesian':
+            @kamodofy(units='km', arg_units=arg_units)
+            @forge.sign(*signature)
+            def transform(**kwargs):
+                """Coordinate tranformer"""
+                alpha_ = kwargs[alpha_var]
+                delta_ = kwargs[delta_var]
+                t_ = kwargs['t_unix']
+                from_coord = SkyCoord(alpha_, delta_,
+                                    unit=self._from_units,
+                                    obstime=t_,
+                                    observer=self._from_observer,
+                                    frame=From_frame)
+
+                if to_frame in _earth_observers:
+                    # cannot use observer keyword on earth_observer frames
+                    to_ = To_frame(obstime=t_)
+                else:
+                    to_ = To_frame(observer=self._to_observer, obstime=t_)
+                    
+                to_coord = from_coord.transform_to(to_)
+
+                xvals = to_coord.cartesian.x.value
+                yvals = to_coord.cartesian.y.value
+                zvals = to_coord.cartesian.z.value
+                return np.array([xvals, yvals, zvals])
+            
+            to_abbrev = _frame_abbrev[to_frame]
+            reg_var = 'xvec_{}__{}'.format(to_abbrev, from_abbrev)
+            transform.__name__ = reg_var
+            
+            docstring = f"Converts from {self._from_observer.capitalize()} {from_frame} " + \
+             f"to {self._to_observer.capitalize()} {self._representation_type.capitalize()} {self._to_frame}"
+            transform.__doc__ = docstring
+        
+        else:
+            raise NotImplementedError("{} not supported".format(self._representation_type))
+        
+        self[reg_var] = transform
+
+```
+
+```python
+sky=SkyKamodo('HeliographicStonyhurst', 'Helioprojective')
+```
+
+```python
+sky.xvec_HGS__HPC?
+```
+
+```python
 import numpy as np
+lon = np.linspace(0, 5, 5)
+lat = np.linspace(0, 5, 7)
+
+llon, llat = np.meshgrid(lon, lat)
+
+llon.shape, llat.shape
 ```
 
-base kamodo instance, to be updated
+Here is how you would normally work with SkyCoord objects
 
 ```python
-kamodo = Kamodo() 
+hpc = SkyCoord(llon, llat,
+               unit='arcsec',
+               obstime="2020/12/15T00:00:00",
+               observer="earth",
+               frame="helioprojective")
+
+hgs = hpc.transform_to("heliographic_stonyhurst")
+xvals = hgs.cartesian.x.value
+yvals = hgs.cartesian.y.value
+zvals = hgs.cartesian.z.value
+points = np.array([xvals, yvals, zvals])
 ```
 
-Define a function that can interact with SkyCoord objects
+```python
+points.shape
+```
+
+Here is how you would do this using the new `SkyKamodo` interface
 
 ```python
-@kamodofy(equation = "\lambda(\delta_{hpc},\\alpha_{hpc}, t_{unix})",
-          units='km',
+sky = SkyKamodo(to_frame='HeliographicStonyhurst', from_frame='Helioprojective')
+points_ = sky.xvec_HGS__HPC(llon, llat, '2020/12/15T00:00:00') 
+```
+
+```python
+assert (points_ == points).all() # check that the results match
+```
+
+```python
+help(sky.xvec_HGS__HPC)
+```
+
+### Changing observers
+
+Brainstorm: The below functions could be auto-generated and preregistered by a skyKamodo subclass
+
+```python
+hpc_earth = sunpy.coordinates.Helioprojective(observer="earth", obstime="2017-07-26")
+
+hpc_venus = SkyCoord(0*u.arcsec, 0*u.arcsec, observer="venus", obstime="2017-07-26", frame="helioprojective")
+
+@kamodofy(units='AU', arg_units=dict(lambda_venus='arcsec', phi_venus='arcsec', t_obs='s'))
+def xvec_earth(lambda_venus, phi_venus, t_obs):
+    """transforms from Venus sky coordinates to Earth cartesian"""
+    hpc_earth = sunpy.coordinates.Helioprojective(observer="earth", obstime=t_obs) # z is toward the sun
+    hpc_venus = SkyCoord(lambda_venus, phi_venus, # lon, lat
+                         observer="venus",
+                         unit='arcsec',
+                         obstime=t_obs,
+                         frame="helioprojective")
+    hpc = hpc_venus.transform_to(hpc_earth)
+    return np.array([hpc.cartesian.x.value, hpc.cartesian.y.value, hpc.cartesian.z.value])
+kamodo = Kamodo()
+kamodo['xvec_earth'] = xvec_earth
+kamodo
+```
+
+```python
+observer = SkyKamodo(from_observer="venus", to_frame='Helioprojective', from_frames=['Helioprojective'])
+observer
+```
+
+```python
+observer.xvec_HPC__HPC?
+```
+
+```python
+hpc_venus.transform_to(hpc_earth)
+```
+
+```python
+observer.xvec_HPC__HPC(0, 0, '2017-07-26')
+```
+
+```python
+hpc_venus.Tx.value, hpc_venus.Ty.value, hpc_venus.distance.value
+```
+
+```python
+hpc_venus?
+```
+
+```python
+kamodo.xvec_earth(3, 3, '2020/12/3')
+```
+
+```python
+
+```
+
+### SkyKamodo class
+
+```python
+from sunpy_kamodo.transforms import SkyKamodo
+```
+
+```python
+import numpy as np
+lon = np.linspace(0, 5, 5)
+lat = np.linspace(0, 5, 7)
+
+llon, llat = np.meshgrid(lon, lat)
+
+llon.shape, llat.shape
+```
+
+```python
+sky = SkyKamodo()
+sky
+```
+
+```python
+sky.xvec_HGS__HGC(llon, llat, '2020/12/15T00:00:00')
+```
+
+```python
+sky.xvec_HGS__HPC(llon, llat, '2020/12/15T00:00:00')
+```
+
+```python
+SkyCoord?
+```
+
+```python
+@kamodofy(units='km',
           arg_units=dict(alpha_HPC='arcsec', delta_HPC='arcsec', t_unix='s'))
 def xvec_HGS(alpha_HPC, delta_HPC, t_unix):
     """Converts from helioprojective to heliographic_stonyhurst"""
@@ -154,64 +386,6 @@ def xvec_HGS(alpha_HPC, delta_HPC, t_unix):
     yvals = hgs.cartesian.y.value
     zvals = hgs.cartesian.z.value
     return np.array([xvals, yvals, zvals])
-```
-
-register functionalized coordinate transform
-
-```python
-kamodo['xvec_HGS'] = xvec_HGS
-kamodo
-```
-
-```python
-help(kamodo.xvec_HGS)
-```
-
-```python
-lon = np.linspace(0, 5, 5)
-lat = np.linspace(0, 5, 7)
-
-llon, llat = np.meshgrid(lon, lat)
-
-llon.shape, llat.shape
-```
-
-test that lon-lat -> x,y,z works as expected
-
-```python
-kamodo.xvec_HGS(llon, llat, '2020/12/15T00:00:00')
-```
-
-### Changing observers
-
-Brainstorm: The below functions could be auto-generated and preregistered by a skyKamodo subclass
-
-```python
-hpc_earth = sunpy.coordinates.Helioprojective(observer="earth", obstime="2017-07-26")
-
-hpc_venus = SkyCoord(0*u.arcsec, 0*u.arcsec, observer="venus", obstime="2017-07-26", frame="helioprojective")
-
-@kamodofy(units='AU', arg_units=dict(lon_venus='arcsec', lat_venus='arcsec', t_obs='s'))
-def xvec_earth(lon_venus, lat_venus, t_obs):
-    """transforms from Venus sky coordinates to Earth cartesian"""
-    hpc_earth = sunpy.coordinates.Helioprojective(observer="earth", obstime=t_obs) # z is toward the sun
-    hpc_venus = SkyCoord(lon_venus, lat_venus,
-                         observer="venus",
-                         unit='arcsec',
-                         obstime=t_obs,
-                         frame="helioprojective")
-    hpc = hpc_venus.transform_to(hpc_earth)
-    
-    return np.array([hpc.cartesian.x.value, hpc.cartesian.y.value, hpc.cartesian.z.value])
-
-kamodo['xvec_earth'] = xvec_earth
-kamodo
-```
-
-```python
-kamodo.xvec_earth.meta.get('rhs', kamodo.xvec_earth)
-
-kamodo.xvec_earth(3,3, '2020/12/3')
 ```
 
 ## Kamodofying sunpy map object

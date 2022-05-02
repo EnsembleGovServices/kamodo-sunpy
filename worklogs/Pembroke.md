@@ -1,3 +1,6 @@
+
+### 2022-05-02 13:10:52.681411: clock-in
+
 ### 2022-04-21 13:37:58.783687: clock-out
 
 * created SkyKamodo class

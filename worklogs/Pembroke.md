@@ -1,3 +1,4 @@
+* added lesson on functions
 
 ### 2022-05-06 10:34:25.382068: clock-in
 

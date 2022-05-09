@@ -1,3 +1,5 @@
+### 2022-05-09 16:23:27.340385: clock-out
+
 * units tutorial, kamodo class
 
 ### 2022-05-09 13:26:25.264841: clock-in

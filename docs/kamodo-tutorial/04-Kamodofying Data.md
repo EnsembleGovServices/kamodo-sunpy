@@ -12,73 +12,12 @@ jupyter:
     name: python3
 ---
 
-## Kamodo Functions
+### Functionalizing data
 
-### Closed form expressions (formulas)
-
-
-Let's start with a simple mathematical expression we wish to functionalize.
-
-$$ f(x) = x^2-x-1 $$
+Kamodo makes it easy to represent raw data as functions, by making use of interpolation (or extrapolation).
 
 
-Kamodo offers some simple tools to turn the above right-hand-side expression into python functions that can operate on numerical data. This is accomplished with Kamodo's underlying [sympy](https://www.sympy.org/en/index.html) library.
-
-```python
-from kamodo import lambdify, parse_expr
-```
-
-First parse the string into a sympy expression
-
-```python
-expr = parse_expr(('x^2-x-1'))
-expr # will render as a latex in jupyter
-```
-
-Sympy has tools that parse free variables from a given expression
-
-```python
-expr.free_symbols
-```
-
-With variables identified, we sympy can convert this expression into a function ready for numerical evaluation
-
-```python
-f = lambdify(expr.free_symbols, expr)
-f
-```
-
-```python
-help(f)
-```
-
-Let's test this for accuracy
-
-```python
-assert f(3) == (3**2)-3-1
-```
-
-The generated function is optimized to work on arrays
-
-```python
-import numpy as np
-
-f(np.linspace(-5,5,1000000)).shape # do a timing test here
-```
-
-!!! note
-    All of the above steps happen automatically when registering functions with the Kamodo class
-
-
-### From Data to functions
-
-Kamodo makes it easy to represent raw data as functions, through the use of interpolation.
-
-
-Suppose we have some time series data we wish to functionalize:
-
-
-For the purposes of this example, we'll use a fake time sequence
+Suppose we have some time series data we wish to functionalize. For the purposes of this example, we'll use a fake time sequence:
 
 ```python
 import pandas as pd

@@ -1,3 +1,6 @@
+
+### 2022-05-09 13:26:25.264841: clock-in
+
 ### 2022-05-06 12:01:13.586437: clock-out
 
 * added lesson on functions

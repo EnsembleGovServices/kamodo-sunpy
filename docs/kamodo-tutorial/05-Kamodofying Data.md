@@ -66,7 +66,7 @@ t_N
 Since we provided the original time index as the function default, calling $\rho(t)$ with no arguments will return the original data 
 
 ```python
-rho().shape
+rho()
 ```
 
 Check that the function results match the raw data

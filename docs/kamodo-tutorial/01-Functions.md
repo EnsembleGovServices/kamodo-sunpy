@@ -69,6 +69,10 @@ from sympy import srepr
 srepr(expr) # Expressions are composed of algebraic types
 ```
 
+```python
+expr
+```
+
 Sympy has [many other tools](https://docs.sympy.org/latest/tutorial/basic_operations.html) for manipulating such expressions. They are worth taking a look at, especially if you wish to [contribute to Kamodo](https://github.com/EnsembleGovServices/kamodo-core/blob/master/CONTRIBUTING.md)!
 
 For our purposes, we are mainly interested in converting such preparing such expressions for numerical evaluation.
@@ -89,6 +93,10 @@ help(f)
 ```
 
 Let's test this for accuracy
+
+```python
+f(3)
+```
 
 ```python
 assert f(3) == (3**2)-3-1

@@ -1,3 +1,4 @@
+* started visualization lesson
 
 ### 2022-05-10 16:14:23.698977: clock-in
 

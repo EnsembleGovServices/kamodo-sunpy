@@ -1,6 +1,7 @@
 ---
 jupyter:
   jupytext:
+    formats: md,ipynb
     text_representation:
       extension: .md
       format_name: markdown
@@ -15,6 +16,8 @@ jupyter:
 ## Kamodo Units
 
 In Kamodo, **units are strictly associated with a function's metadata**. Units are not attached to a type (as in astropy, pint, etc). 
+
+compare/contrast with an example of astropy/sunpy units
 
 
 ### Unit Registration
@@ -128,5 +131,9 @@ k.g(5.972e24, 6371000.) # M_E[kg]=5.972e24, R_E[m]=6371000.
 ```
 
 ```python
+k['g_2(M[g], r[cm])[cm/s^2]'] = 'g'
+```
 
+```python
+k
 ```

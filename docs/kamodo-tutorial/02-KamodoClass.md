@@ -14,7 +14,7 @@ jupyter:
 
 ## Kamodo class
 
-The `Kamodo` class is a container used to register, manipulate, evaluate, and plot functions representing physical data.
+The `Kamodo` class is a container used to register, manipulate, evaluate, and plot functions representing scientific resources.
 
 
 ### Function registration

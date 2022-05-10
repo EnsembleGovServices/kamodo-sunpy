@@ -14,6 +14,9 @@ Special Thanks: Laura Hayes
 ![what is kamodo](WhatIsKamodo/WhatIsKamodo.001.jpeg)
 
 
+Kamodo converts "original" data into functions...
+
+
 ### What is a scientific resource?
 
 Mirriam-Webster Definition of resource:
@@ -43,8 +46,8 @@ Scientific resources **are not** the tools themselves:
 * Colloquially, **functions take inputs and return outputs**
 
 Functions represent *mappings*, they **are not** the tools themselves:
-* Expressions: `f(x) = x**2+y**2+z**2`
-* Code blocks: `lambda x: x**2 + y**2 + z**2`
+* Expressions: `f(x,y,z) = x**2+y**2+z**2`
+* Code blocks: `lambda x,y,z: x**2 + y**2 + z**2`
 * Variables: `rho` (the codomain) is not the same as `rho(x)` (the function)
 
 

@@ -1,3 +1,5 @@
+### 2022-05-10 11:35:00.712987: clock-out
+
 * dry run
 * cleaning up units
 

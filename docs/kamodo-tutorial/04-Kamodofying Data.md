@@ -21,6 +21,7 @@ Suppose we have some time series data we wish to functionalize. For the purposes
 
 ```python
 import pandas as pd
+import numpy as np
 t_N = pd.date_range('Nov 9, 2018', 'Nov 20, 2018', freq = 'H')
 
 dt_days = (t_N - t_N[0]).total_seconds()/(24*3600) # seconds
@@ -32,7 +33,7 @@ ser = pd.Series(data, index=t_N)
 ser.head()
 ```
 
-Next, we'll define a time interpolator. This assumes the input is a pandas time series.
+Next, we'll define a time interpolator.
 
 ```python
 def rho(t=t_N):
@@ -42,6 +43,10 @@ def rho(t=t_N):
     result = ser_interpolated.reindex(t)
     return result
 ```
+
+!!! note
+    The above interpolator assumes the input is a pandas time series. Again, this is the prerogative of the interpolator author and is not a kamodo requirement.
+
 
 Now we can evaluate $\rho(t)$ for *any* time within the domain of the original data (return `NaN` otherwise).
 

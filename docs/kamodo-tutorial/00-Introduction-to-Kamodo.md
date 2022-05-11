@@ -14,9 +14,6 @@ Special Thanks: Laura Hayes
 ![what is kamodo](WhatIsKamodo/WhatIsKamodo.001.jpeg)
 
 
-Kamodo converts "original" data into functions...
-
-
 ### What is a scientific resource?
 
 Mirriam-Webster Definition of resource:
@@ -58,6 +55,7 @@ Functions represent the physical state of the systems we are investigating
 * Derived variables (e.g. $ P_{ram} = \rho v^2 $)
 * Coordinate transformations
 * Images (pixel coordinates)
+* **solutions** to differential equations
 
 Functions may readily be used downstream:
 * Evaluation
@@ -77,11 +75,14 @@ APIs help us communicate with data living in:
 * file formats (hdf, netcdf)
 * libraries
 
+### What is *functional* API?
+
 A *functional API* focuses on provides access to information in the form of functions, rather than the underlying data or objects themselves.
 
 * low barrier to entry
 * (mostly) self-describing
-* almost no side effects
+* (almost) no side effects
 * ammenable to functional programing techniques
+* compatible with AI/ML
 
 <!-- #endregion -->

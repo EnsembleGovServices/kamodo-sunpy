@@ -14,6 +14,8 @@ jupyter:
 
 ## Functions
 
+Functions may be represented by many implementations/expressions (think right-hand-side)
+
 ### Closed form expressions (formulas)
 
 
@@ -59,6 +61,33 @@ expr.subs(dict(x='y-1'))
 
 ```python
 expr.free_symbols
+```
+
+**solutions**
+
+```python
+expr # solve for f(x) = 0
+```
+
+```python
+from sympy import solve, symbols
+
+zeros =  solve(expr, symbols('x')) 
+zeros[0]
+```
+
+```python
+zeros[1]
+```
+
+**numerical evaluation**
+
+```python
+zeros[0].evalf()
+```
+
+```python
+zeros[1].evalf()
 ```
 
 **type repr**

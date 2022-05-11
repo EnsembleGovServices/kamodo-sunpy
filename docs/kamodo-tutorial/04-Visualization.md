@@ -119,6 +119,26 @@ Here we can see a `1d-line` plot type for functions for 1-dimensional functions,
 This approach allows us to provide many plot types that fit a variety of situations.
 
 
+**Contour plots**
+
+```python
+from kamodo import Kamodo
+@kamodofy(units = 'cm^2')
+def f_NM(x_N = np.linspace(0, 8*np.pi,100), y_M = np.linspace(0, 5, 90)):
+    x, y = np.meshgrid(x_N, y_M, indexing = 'xy')
+    return np.sin(x)*y
+
+k = Kamodo(f_NM = f_NM)
+k
+```
+
+Kamodo utilizes function defaults to generate quick-look graphics:
+
+```python
+fig = k.plot('f_NM')
+fig
+```
+
 **Vector fields**
 
 ```python

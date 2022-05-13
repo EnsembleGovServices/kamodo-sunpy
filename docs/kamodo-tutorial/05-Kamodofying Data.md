@@ -48,6 +48,20 @@ def rho(t=t_N):
     The above interpolator assumes the input is a pandas time series. Again, this is the prerogative of the interpolator author and is not a kamodo requirement.
 
 
+Let's use Kamodo to plot this data.
+
+```python
+from kamodo import Kamodo
+```
+
+```python
+k = Kamodo(rho=rho)
+```
+
+```python
+k.plot('rho')
+```
+
 Now we can evaluate $\rho(t)$ for *any* time within the domain of the original data (return `NaN` otherwise).
 
 ```python

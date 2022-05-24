@@ -1,3 +1,5 @@
+* moving to simplify tutorial
+* cleaning up example
 
 ### 2022-05-24 09:38:41.033623: clock-in
 

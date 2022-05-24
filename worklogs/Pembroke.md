@@ -1,3 +1,5 @@
+### 2022-05-24 10:06:25.306543: clock-out
+
 * moving to simplify tutorial
 * cleaning up example
 

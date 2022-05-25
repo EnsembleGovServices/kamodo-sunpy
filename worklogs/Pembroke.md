@@ -1,3 +1,6 @@
+
+### 2022-05-25 11:03:56.613883: clock-in
+
 ### 2022-05-24 10:06:25.306543: clock-out
 
 * moving to simplify tutorial

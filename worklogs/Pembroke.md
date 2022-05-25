@@ -1,3 +1,4 @@
+* kamodofied sunpy map object
 
 ### 2022-05-25 11:03:56.613883: clock-in
 
